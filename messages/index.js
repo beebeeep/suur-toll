@@ -28,5 +28,11 @@ if (useEmulator) {
     });
     server.post('/api/messages', connector.listen());    
 } else {
-    module.exports = { default: connector.listen() }
+    var listener = connector.listen();
+    var withLogging = function (context, req) {
+        console.log = context.log;
+        listener(context, req);
+    }
+
+    module.exports = { default: withLogging }
 }
