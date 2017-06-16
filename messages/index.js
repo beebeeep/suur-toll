@@ -16,6 +16,7 @@ var bot = new builder.UniversalBot(connector);
 bot.localePath(path.join(__dirname, './locale'));
 
 bot.dialog('/', function (session) {
+    console.log('Messge from %j', session.message)
     session.send('You said ' + session.message.text + '. You are so annoying');
 });
 
