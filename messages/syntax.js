@@ -42,11 +42,11 @@ function unmatchedQuotes(str) {
   for (i = 0; i < quotes.length; i++) {
     matched = matched && (countSym(str, quotes[i]) % 2 === 0);
   }
-  return matched
+  return !matched
 }
 
 function smartSplit(sep, str, fill) {
-    tokens = str.split(sep);
+    var tokens = str.split(sep);
     var i = 1;
     while (true) {
       if (unmatchedQuotes(tokens[i-1])) {

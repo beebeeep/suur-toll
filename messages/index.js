@@ -21,9 +21,9 @@ bot.recognizer({
     recognize: syntax.recognizer
 });
 
-bot.dialog('CreateBauTask', function(session, args, next) {
+bot.dialog('CreateBauTask', (session, args, next) => {
     console.log('Session is ', session)
-    console.log('args is ', args)
+    conole.log('args is ', args)
     session.send('bau task -> ' + JSON.stringify(args));
 }).triggerAction({matches: 'CreateBauTask'});
 
