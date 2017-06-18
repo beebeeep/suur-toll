@@ -27,8 +27,13 @@ function setupDialogs(bot) {
                         .then((wit) => { session.send("Comment was added to item #" + wit.id); })
                         .catch((err) => { session.send("Cannot comment item: " + err); });
                     break;
+                case 'CreateBauTask':
+                    vso.createTask(session, true, opts.title, opts.description)
+                        .then((wit) => { session.send("Sure, created task #" + wit.id); })
+                        .catch((err) => { session.send("Cannot create task: " + err); });
+                    break;
                 case 'CreateTask':
-                    vso.createTask(session, opts.bau, opts.title, opts.description)
+                    vso.createTask(session, false, opts.title, opts.description)
                         .then((wit) => { session.send("Sure, created task #" + wit.id); })
                         .catch((err) => { session.send("Cannot create task: " + err); });
                     break;

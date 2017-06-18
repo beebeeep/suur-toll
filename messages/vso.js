@@ -39,7 +39,7 @@ function createTask(session, bau, title, description) {
             reject(new Error('Backlog is not set for this conversation'));
             return;
         }
-        var backlog = settings.backlogs[sessiong.conversationData.backlog];
+        var backlog = settings.backlogs[session.conversationData.backlog];
         if (!backlog) {
             reject(new Error('Unknown backlog ' + session.conversationData.backlog));
             return;
@@ -48,8 +48,8 @@ function createTask(session, bau, title, description) {
             {op: 'add', path: '/fields/System.Title', value: title},
             {op: 'add', path: '/fields/System.Description', value: description || 'Add more details here' },
             {op: 'add', path: '/fields/System.IterationPath', value: backlog.iteration },
-            {op: 'add', path: '/fields/System.AreaPath', value: description || 'Add more details here' },
-            {op: 'add', path: '/fields/System.WorkItemType', value: backlog.item_type},
+            {op: 'add', path: '/fields/System.AreaPath', value: backlog.area },
+            //{op: 'add', path: '/fields/System.WorkItemType', value: backlog.item_type},
         ];
         if (bau) {
             patch.push(
@@ -61,8 +61,11 @@ function createTask(session, bau, title, description) {
                 }
             );
         }
-        witApi.createWorkItem({}, patch, backlog.project)
-            .then( wit => { session.conversationData.last_wit = wit.id; resolve(wit); })
+        console.log(patch);
+        witApi.createWorkItem({}, patch, backlog.project, backlog.item_type)
+            .then( wit => { 
+                session.conversationData.last_wit = wit.id; resolve(wit); 
+            })
             .catch( err => { reject(err); });
     });
 }
