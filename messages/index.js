@@ -5,14 +5,28 @@ var path = require('path');
 var syntax = require('./syntax')
 var vso = require('./vso');
 
-var useEmulator = (process.env.NODE_ENV == 'development');
-
-var connector = useEmulator ? new builder.ChatConnector() : new botbuilder_azure.BotServiceConnector({
-    appId: process.env['MicrosoftAppId'],
-    appPassword: process.env['MicrosoftAppPassword'],
-    stateEndpoint: process.env['BotStateEndpoint'],
-    openIdMetadata: process.env['BotOpenIdMetadata']
-});
+var connector; 
+var azure;
+switch(process.env.NODE_ENV) {
+    case 'development':
+        connector = new builder.ChatConnector();
+        azure = false;
+        break; 
+    case 'testing':
+        connector = new builder.ChatConnector({
+            appId: process.env['AppId'],
+            appPassword: process.env['AppPassword']});
+        azure = false;
+        break;
+    default:
+        connector = new botbuilder_azure.BotServiceConnector({
+            appId: process.env['MicrosoftAppId'],
+            appPassword: process.env['MicrosoftAppPassword'],
+            stateEndpoint: process.env['BotStateEndpoint'],
+            openIdMetadata: process.env['BotOpenIdMetadata']
+        });
+        azure = true;
+}
 
 var bot = new builder.UniversalBot(connector, function(session) {
     session.send("Unknown command");
@@ -27,17 +41,25 @@ bot.dialog('CreateBauTask', (session, args, next) => {
 }).triggerAction({matches: 'CreateBauTask'});
 
 
-bot.dialog('CommentTask', (session, args, next) => {
-    var opts = args.intent.entities;
-    vso.commentItem(opts.item, opts.comment).then( (wit) => {
-        console.log(wit);
-        session.send("Comment was added to item #" + wit.id);
-    }).catch ( (err) => {
-        session.send("Cannot comment item: " + err);
+bot.dialog('ExecuteCommands', (session, args, next) => {
+    args.intent.entities.commands.forEach( command => {
+        var opts = command.opts;
+        switch (command.type) {
+            case 'CommentTask':
+                vso.commentTask(opts.item, opts.comment).then((wit) => {
+                    console.log(wit);
+                    session.send("Comment was added to item #" + wit.id);
+                }).catch((err) => {
+                    session.send("Cannot comment item: " + err);
+                });
+                break;
+            default:
+                session.send("Unknown command");
+        }
     });
-}).triggerAction({matches: 'CommentTask'});
+}).triggerAction({matches: 'ExecuteCommands'});
 
-if (useEmulator) {
+if (!azure) {
     var restify = require('restify');
     var server = restify.createServer();
     server.listen(3978, function() {

@@ -12,7 +12,7 @@ module.exports = {
 */
 
 var commands = [
-    {intent: 'CreateBauTask',   syntax: ['bau', 'task', '$title', '$description?']},
+    {intent: 'CreateBauTask',   syntax: ['bau?', 'task', '$title', '$description?']},
     {intent: 'CreateTask',      syntax: ['task', '$title', '$description?']},
     {intent: 'AssignTask',      syntax: ['assign', '$item', 'to', '$person', 'with?', 'comment', '$comment']},
     {intent: 'UnassignTask',    syntax: ['unassign', '$item', 'with?', 'comment', '$comment']},
@@ -94,14 +94,22 @@ function matchIntent(syn, tokens) {
 }
 
 function recognizer(context, done) {
-    var intent = { score: 0.0 };
-    var tokens = smartSplit(/\s+/, context.message.text, ' ')
-    for (var i = 0; i < commands.length; i++) {
-        var match = matchIntent(commands[i], tokens);
-        if (match) {
-            intent = {score: 1.0, intent: commands[i].intent, entities: match};
-            break;
+    var intent = { score: 1.0, intent: 'ExecuteCommands', entities: {commands: []} };
+    var commandTokens = smartSplit(/\s*;\s*/, context.message.text, ' ; ');
+    // cycle through all semicolon-separated commands
+    commandTokens.forEach( cmdToken => {
+        var tokens = smartSplit(/\s+/, cmdToken, ' ')
+        var cmd  = {type: 'UnknownCommand'};
+        // try to find known command
+        for (var i = 0; i < commands.length; i++) {
+            var match = matchIntent(commands[i], tokens);
+            if (match) {
+                cmd = {type: commands[i].intent, opts: match};
+                break;
+            }
         }
-    }
+        intent.entities.commands.push(cmd);
+    });
+
     done(null, intent);
 }

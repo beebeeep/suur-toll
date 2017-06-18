@@ -6,10 +6,10 @@ var authHandler = vsts.getPersonalAccessTokenHandler(token);
 var witApi = new vsts.WebApi(collectionUrl, authHandler).getWorkItemTrackingApi();
 
 module.exports = {
-    commentItem: commentItem
+    commentTask: commentTask
 }
 
-async function commentItem(id, text) {
+async function commentTask(id, text) {
     try {
         var patch = [ {op: 'add', path: '/fields/System.History', value: text} ];
         var wit = await witApi.updateWorkItem({}, patch, id);
