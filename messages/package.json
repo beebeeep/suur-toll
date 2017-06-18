@@ -9,7 +9,7 @@
     "vso-node-api": "^6.2.5-preview"
   },
   "devDependencies": {
-    "restify": "^4.3.0",
+    "restify": "^4.3.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -47,7 +47,6 @@ bot.dialog('ExecuteCommands', (session, args, next) => {
         switch (command.type) {
             case 'CommentTask':
                 vso.commentTask(opts.item, opts.comment).then((wit) => {
-                    console.log(wit);
                     session.send("Comment was added to item #" + wit.id);
                 }).catch((err) => {
                     session.send("Cannot comment item: " + err);
