@@ -27,11 +27,16 @@ switch(process.env.NODE_ENV) {
         });
         azure = true;
 }
+var tableName = 'suurtolldata';
+var storageAccount = 'ecombotstorage';
+var accountKey = process.env.StorageKey;
+var tableClient = new botbuilder_azure.AzureTableClient(tableName, storageAccount, accountKey);
+var storage = new botbuilder_azure.AzureBotStorage({gzipData: false}, tableClient);
 
 var chatbot = new builder.UniversalBot(connector, function(session) {
     session.send("Unknown command");
 });
-
+chatbot.set('storage', storage);
 chatbot.recognizer({
     recognize: syntax.recognizer
 });

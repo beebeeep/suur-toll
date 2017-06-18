@@ -13,8 +13,10 @@ module.exports = {
 
 var commands = [
     {intent: 'Say',             syntax: ['say', '$text']},
-    {intent: 'CreateBauTask',   syntax: ['bau?', 'task', '$title', '$description?']},
-    {intent: 'CreateTask',      syntax: ['task', '$title', '$description?']},
+    {intent: 'Set',             syntax: ['set', '$variable', 'to', '$value']},
+    {intent: 'Get',             syntax: ['get', '$variable']},
+    {intent: 'CreateTask',      syntax: ['bau?', 'task', '$title', '$description?']},
+    //{intent: 'CreateTask',      syntax: ['task', '$title', '$description?']},
     {intent: 'AssignTask',      syntax: ['assign', '$item', 'to', '$person', 'with?', 'comment', '$comment']},
     {intent: 'UnassignTask',    syntax: ['unassign', '$item', 'with?', 'comment', '$comment']},
     {intent: 'AddTag',          syntax: ['add', 'tag', '$tag', 'to', '$item', 'with', 'comment', '$comment']},
@@ -47,6 +49,8 @@ function unmatchedQuotes(str) {
 }
 
 function smartSplit(sep, str, fill) {
+    // actually, not-so-smart-split: will split 'str' by regex 'sep', considering possible quotes etc
+    // note that in quoted tokens substring matching 'sep' will be replaced with 'fill' string
     var tokens = str.split(sep);
     var i = 1;
     while (true) {
