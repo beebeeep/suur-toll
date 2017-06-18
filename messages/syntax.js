@@ -12,6 +12,7 @@ module.exports = {
 */
 
 var commands = [
+    {intent: 'Say',             syntax: ['say', '$text']},
     {intent: 'CreateBauTask',   syntax: ['bau?', 'task', '$title', '$description?']},
     {intent: 'CreateTask',      syntax: ['task', '$title', '$description?']},
     {intent: 'AssignTask',      syntax: ['assign', '$item', 'to', '$person', 'with?', 'comment', '$comment']},
@@ -94,6 +95,7 @@ function matchIntent(syn, tokens) {
 }
 
 function recognizer(context, done) {
+    console.log("Got message '%s' from %j", context.message.text, context.message.address);
     var intent = { score: 1.0, intent: 'ExecuteCommands', entities: {commands: []} };
     var commandTokens = smartSplit(/\s*;\s*/, context.message.text, ' ; ');
     // cycle through all semicolon-separated commands
