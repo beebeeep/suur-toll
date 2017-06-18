@@ -1,18 +1,19 @@
 {
-  "name": "emptybot",
+  "name": "suur-toll",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "dependencies": {
     "botbuilder": "^3.8.4",
-    "botbuilder-azure": "3.0.2"
+    "botbuilder-azure": "3.0.2",
+    "vso-node-api": "^6.2.5-preview"
   },
   "devDependencies": {
-    "restify": "^4.3.0"
+    "restify": "^4.3.0",
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Danila Migaln",
+  "license": "MIT"
 }

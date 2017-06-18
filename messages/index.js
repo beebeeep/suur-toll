@@ -3,6 +3,7 @@ var builder = require("botbuilder");
 var botbuilder_azure = require("botbuilder-azure");
 var path = require('path');
 var syntax = require('./syntax')
+var vso = require('./vso');
 
 var useEmulator = (process.env.NODE_ENV == 'development');
 
@@ -22,12 +23,19 @@ bot.recognizer({
 });
 
 bot.dialog('CreateBauTask', (session, args, next) => {
-    console.log('Session is ', session)
-    conole.log('args is ', args)
     session.send('bau task -> ' + JSON.stringify(args));
 }).triggerAction({matches: 'CreateBauTask'});
 
 
+bot.dialog('CommentTask', (session, args, next) => {
+    var opts = args.intent.entities;
+    vso.commentItem(opts.item, opts.comment).then( (wit) => {
+        console.log(wit);
+        session.send("Comment was added to item #" + wit.id);
+    }).catch ( (err) => {
+        session.send("Cannot comment item: " + err);
+    });
+}).triggerAction({matches: 'CommentTask'});
 
 if (useEmulator) {
     var restify = require('restify');

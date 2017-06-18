@@ -86,6 +86,8 @@ function matchIntent(syn, tokens) {
             } else {
                 return null
             }
+        } else {
+            return null;
         }
     }
     return intent
