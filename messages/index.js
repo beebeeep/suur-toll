@@ -51,7 +51,9 @@ if (!azure) {
     server.listen(3978, function() {
         console.log('Started bot at endpont http://localhost:3978/api/messages');
     });
+    server.use(restify.queryParser());
     server.post('/api/messages', connector.listen());    
+    server.get('/api/oauth', bot.oauthHandler());    
 } else {
     module.exports = { default: connector.listen() }
 }

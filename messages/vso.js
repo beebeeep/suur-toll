@@ -16,7 +16,8 @@ Object.keys(settings.backlogs).forEach( (b) => {
 
 module.exports = {
     commentTask: commentTask,
-    createTask: createTask
+    createTask: createTask,
+    getProfile: getProfile
 }
 
 function commentTask(session, id, text) {
@@ -67,6 +68,17 @@ function createTask(session, bau, title, description) {
                 session.conversationData.last_wit = wit.id; resolve(wit); 
             })
             .catch( err => { reject(err); });
+    });
+}
+
+function getProfile(accessToken) {
+    // authenticate using provided token and return user profile
+    return new Promise((resolve, reject) => {
+        var auth = vsts.getBearerHandler(accessToken);
+        var profileApi = new vsts.WebApi(collection, auth).getProfileApi();
+        profileApi.getProfile('me')
+        .then((data) => { resolve(data) })
+        .catch((err) => { reject(err) });
     });
 }
 
