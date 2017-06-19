@@ -37,6 +37,8 @@ var chatbot = new builder.UniversalBot(connector, function(session) {
     session.send("Unknown command");
 });
 chatbot.set('storage', storage);
+chatbot.set('persistConversationData', true);
+chatbot.set('autoBatchDelay', 1000);
 chatbot.recognizer({
     recognize: syntax.recognizer
 });
