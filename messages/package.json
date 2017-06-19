@@ -9,6 +9,7 @@
     "botbuilder-azure": "3.0.2",
     "moment": "^2.18.1",
     "moment-strftime": "^0.2.2",
+    "striptags": "^3.0.1",
     "vso-node-api": "^6.2.5-preview"
   },
   "devDependencies": {

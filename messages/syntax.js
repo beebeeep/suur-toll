@@ -1,3 +1,7 @@
+striptags = require('striptags');
+process = require('process');
+settings = require('./settings');
+
 module.exports = {
     recognizer: recognizer
 }
@@ -14,6 +18,7 @@ module.exports = {
 var commands = [
     {intent: 'Say',             syntax: ['say', '$text']},
     {intent: 'Set',             syntax: ['set', '$variable', 'to', '$value']},
+    {intent: 'UserSet',         syntax: ['userset', '$variable', 'to', '$value']},
     {intent: 'Get',             syntax: ['get', '$variable']},
     {intent: 'Dump',            syntax: ['dump']},
     {intent: 'CreateBauTask',   syntax: ['bau', 'task', '$title', '$description?']},
@@ -29,6 +34,8 @@ var commands = [
     {intent: 'BlockTask',       syntax: ['block', '$item', 'with?', 'comment', '$comment']},
     {intent: 'OpenTask',        syntax: ['open', '$item', 'with?', 'comment', '$comment']}
 ];
+
+var activation_re = new RegExp('^(?:Edited previous message:\\s+)?@?' + process.env.BotName + '\\s*');
 
 function countSym(str, sym) {
   var count = 0;
@@ -102,7 +109,8 @@ function matchIntent(syn, tokens) {
 function recognizer(context, done) {
     console.log("Got message '%s' from %j", context.message.text, context.message.address);
     var intent = { score: 1.0, intent: 'ExecuteCommands', entities: {commands: []} };
-    var commandTokens = smartSplit(/\s*;\s*/, context.message.text, ' ; ');
+    var text = striptags(context.message.text).replace(activation_re, '');
+    var commandTokens = smartSplit(/\s*;\s*/, text, ' ; ');
     // cycle through all semicolon-separated commands
     commandTokens.forEach( cmdToken => {
         var tokens = smartSplit(/\s+/, cmdToken, ' ')

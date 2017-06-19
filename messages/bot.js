@@ -1,4 +1,5 @@
 "use strict";
+var util = require('util');
 var vso = require('./vso');
 
 module.exports = {
@@ -8,15 +9,24 @@ module.exports = {
 function setupDialogs(bot) {
     bot.dialog('ExecuteCommands', (session, args, next) => {
         args.intent.entities.commands.forEach( command => {
+            if (!session.userData.auth) {
+                session.send("Sorry, I don't know you. Use command 'authenticate' first");
+                return;
+            }
             var opts = command.opts;
             switch (command.type) {
                 case 'Say':
                     session.send(opts.text);
                     break;
+                case 'UserSet':
+                    var prev = session.userData[opts.variable];
+                    session.userData[opts.variable] = opts.value;
+                    session.send(util.format("New value for '%s' saved. Previous was %s", opts.variable, prev));
+                    break
                 case 'Set':
                     var prev = session.conversationData[opts.variable];
                     session.conversationData[opts.variable] = opts.value;
-                    session.send("New value saved. Previous was " + prev);
+                    session.send(util.format("New value for '%s' saved. Previous was %s", opts.variable, prev));
                     break
                 case 'Get':
                     var v = session.conversationData[opts.variable];

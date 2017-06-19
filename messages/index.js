@@ -38,7 +38,7 @@ var chatbot = new builder.UniversalBot(connector, function(session) {
 });
 chatbot.set('storage', storage);
 chatbot.set('persistConversationData', true);
-chatbot.set('autoBatchDelay', 1000);
+//chatbot.set('autoBatchDelay', 1000);
 chatbot.recognizer({
     recognize: syntax.recognizer
 });
