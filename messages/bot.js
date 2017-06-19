@@ -13,11 +13,7 @@ function setupDialogs(bot) {
         for (var i = 0; i < commands.length; i++) { 
             var command = commands[i];
             if (command.type === 'Authenticate') {
-                var msg = new builder.Message(session);
-                msg.attachments([
-                    new builder.SigninCard(session).button('ok', 'https://miga.me.uk').text('jump da fuck up')
-                ]);
-                session.send(msg);
+                authenticateUser(bot, session);
                 break;
             }
             if (!session.userData.auth) {
@@ -78,4 +74,18 @@ function setupDialogs(bot) {
             }
         }
     }).triggerAction({matches: 'ExecuteCommands'});
+}
+
+function authenticateUser(bot, session) {
+    var msg = new builder.Message();
+    msg.attachments([
+            new builder.SigninCard(session).button('ok', 'https://miga.me.uk').text('jump da fuck up')
+    ]);
+    var addr = Object.assign({}, session.message.address);
+    delete addr.conversation;   //send message to user itself
+    msg.address(addr);
+    if (session.message.address.conversation.isGroup) {
+        session.send("Ok, let's take 1:1");
+    }
+    bot.send(msg);
 }
