@@ -1,5 +1,6 @@
 "use strict";
 var util = require('util');
+var builder = require("botbuilder");
 var vso = require('./vso');
 
 module.exports = {
@@ -8,10 +9,20 @@ module.exports = {
 
 function setupDialogs(bot) {
     bot.dialog('ExecuteCommands', (session, args, next) => {
-        args.intent.entities.commands.forEach( command => {
+        var commands = args.intent.entities.commands;
+        for (var i = 0; i < commands.length; i++) { 
+            var command = commands[i];
+            if (command.type === 'Authenticate') {
+                var msg = new builder.Message(session);
+                msg.attachments([
+                    new builder.SigninCard(session).button('ok', 'https://miga.me.uk').text('jump da fuck up')
+                ]);
+                session.send(msg);
+                break;
+            }
             if (!session.userData.auth) {
                 session.send("Sorry, I don't know you. Use command 'authenticate' first");
-                return;
+                break;
             }
             var opts = command.opts;
             switch (command.type) {
@@ -65,6 +76,6 @@ function setupDialogs(bot) {
                 default:
                     session.send("Unknown command");
             }
-        });
+        }
     }).triggerAction({matches: 'ExecuteCommands'});
 }

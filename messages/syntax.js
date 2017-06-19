@@ -16,6 +16,7 @@ module.exports = {
 */
 
 var commands = [
+    {intent: 'Authenticate',    syntax: ['authenticate']},
     {intent: 'Say',             syntax: ['say', '$text']},
     {intent: 'Set',             syntax: ['set', '$variable', 'to', '$value']},
     {intent: 'UserSet',         syntax: ['userset', '$variable', 'to', '$value']},
