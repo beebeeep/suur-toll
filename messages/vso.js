@@ -49,7 +49,9 @@ function createTask(session, bau, title, description) {
             {op: 'add', path: '/fields/System.Title', value: title},
             {op: 'add', path: '/fields/System.Description', value: description || 'Add more details here' },
             {op: 'add', path: '/fields/System.IterationPath', value: backlog.iteration },
-            {op: 'add', path: '/fields/System.AreaPath', value: backlog.area }
+            {op: 'add', path: '/fields/System.AreaPath', value: backlog.area },
+            {op: 'add', path: '/fields/Skype.Initiator', value: session.userData.vsoProfile.displayName },
+            {op: 'add', path: '/fields/System.History', value: "Created by " + process.env.BotName }
         ];
         if (bau) {
             patch.push(
@@ -61,7 +63,6 @@ function createTask(session, bau, title, description) {
                 }
             );
         }
-        console.log(patch);
         witApi.createWorkItem({}, patch, backlog.project, backlog.item_type)
             .then( wit => { 
                 session.conversationData.last_wit = wit.id; resolve(wit); 
@@ -77,7 +78,7 @@ function getProfile(accessToken, id) {
         var auth = vsts.getBearerHandler(accessToken);
         var profileApi = new vsts.WebApi('https://app.vssps.visualstudio.com/', auth).getProfileApi();
         profileApi.getProfile(id)
-            .then((profile) => { console.log(profile);resolve(profile) })
+            .then((profile) => { resolve(profile) })
             .catch((err) => { reject(err) });
     });
 }

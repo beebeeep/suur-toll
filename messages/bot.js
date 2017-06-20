@@ -60,7 +60,6 @@ function setupDialogs(bot) {
                 authenticateUser(bot, session);
                 break;
             }
-            console.log(session.userData);
             if (!session.userData.vsoProfile) {
                 session.send("Sorry, I don't know you. Use command 'authenticate' first");
                 break;
@@ -86,7 +85,6 @@ function setupDialogs(bot) {
                     session.send(opts.variable + ' = ' + v);
                     break;
                 case 'Dump':
-                    console.log(JSON.stringify(session.conversationData));
                     session.send("userData: " + JSON.stringify(session.userData));
                     session.send("conversationData: " + JSON.stringify(session.conversationData));
                     break;
@@ -149,7 +147,6 @@ function authenticateUser(bot, session) {
         if (profile.emailAddress.match(/@(microsoft|skype)\.com$/i)) {
             msg.text(util.format("Authenticated as %s %s", profile.emailAddress, profile.displayName));
             session.userData.vsoProfile = profile;
-            console.log(session.userData);
         } else {
             msg.text(util.format("Sorry, appears that your VSO profile %s %s should not have access", profile.emailAddress, profile.displayName));
             delete(session.userData.vsoProfile);

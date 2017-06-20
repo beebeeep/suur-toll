@@ -10,13 +10,12 @@
     "moment": "^2.18.1",
     "moment-strftime": "^0.2.2",
     "request-promise-native": "^1.0.4",
+    "restify": "^4.3.0",
     "restify-plugins": "^1.6.0",
     "striptags": "^3.0.1",
     "vso-node-api": "^6.2.5-preview"
   },
-  "devDependencies": {
-    "restify": "^4.3.0"
-  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
