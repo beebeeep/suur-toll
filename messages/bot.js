@@ -1,7 +1,7 @@
 "use strict";
 var util = require('util');
 var process = require('process');
-var request = require('request');
+var request = require('request-promise-native');
 var builder = require("botbuilder");
 var vso = require('./vso');
 var settings = require('./settings');
@@ -12,16 +12,16 @@ module.exports = {
 }
 
 function oauthHandler(bot) {
-    return (res, req, next) => {
-        res.send("Thank you, I will now check if you have access. You can close this tab");
+    return (req, res) => {
+        res.contentType = "text/plain";
         var uid = req.query.state;
         var code = req.query.code;
-        console.log(uid, code);
 
         if (!bot.oauthPending[uid]) {
             res.send("Wrong callback");
-            next();
             return;
+        } else {
+            res.send('Thank you, I will now check if you have access. You can close this tab');
         }
 
         var form = {
@@ -35,27 +35,19 @@ function oauthHandler(bot) {
             url: 'https://app.vssps.visualstudio.com/oauth2/token', 
             method: 'POST',
             form: form,
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            timeout: 1000,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            json: true
         }
-        request(opts, (err, resp, body) => {
-            if (!error && res.statusCode - 200 < 100) {
-                var r = JSON.parse(body);
-                var accessToken = r.access_token;
-                vso.getProfile(accessToken)
-                    .then((data) => {
-                        console.log(data);
-                        bot.oauthPending[uid].resolve(JSON.stringify(profile));
-                    })
-                    .catch((err) => {
-                        bot.oauthPending[uid].reject("Cannot get OAuth token");
-                        return;
-                    });
-
-            } else {
-                bot.oauthPending[uid].reject("Cannot get OAuth token");
-                return;
-            }
-        });
+        request(opts)
+            .then((res) => {
+                var accessToken = res.access_token;
+                vso.getProfile(accessToken, 'me')
+                    .then((profile) => { bot.oauthPending[uid].resolve(profile) })
+                    .catch((err) => { bot.oauthPending[uid].reject("Cannot get VSO profile")});
+            }).catch((err) => {
+                bot.oauthPending[uid].reject("Cannot get OAuth token: " + err);
+            });
     }
 }
 
@@ -68,7 +60,8 @@ function setupDialogs(bot) {
                 authenticateUser(bot, session);
                 break;
             }
-            if (!session.userData.auth) {
+            console.log(session.userData);
+            if (!session.userData.vsoProfile) {
                 session.send("Sorry, I don't know you. Use command 'authenticate' first");
                 break;
             }
@@ -85,6 +78,7 @@ function setupDialogs(bot) {
                 case 'Set':
                     var prev = session.conversationData[opts.variable];
                     session.conversationData[opts.variable] = opts.value;
+                    session.save()
                     session.send(util.format("New value for '%s' saved. Previous was %s", opts.variable, prev));
                     break
                 case 'Get':
@@ -130,31 +124,42 @@ function setupDialogs(bot) {
 
 function authenticateUser(bot, session) {
     var userId = session.message.address.user.id;
-    var appId = process.env.VSOAppId;
+    var appId = process.env.OauthAppId;
     var scope = 'vso.profile';
-    var cb_url = process.env.OauthCallbackURL;
-    var user_addr = Object.assign({}, session.message.address); delete user_addr.conversation;  
-    cb_url = util.format("https://app.vssps.visualstudio.com/oauth2/authorize?client_id=%s&response_type=Assertion&state=%s&scope=%s&redirect_uri=%s", app_id, userId, scope, cb_url);
+    var cbUrl = process.env.OauthCallbackURL;
+    var userAddr = Object.assign({}, session.message.address); delete userAddr.conversation;  //copy session address, remove conversation from there => user address
+    var url = util.format("https://app.vssps.visualstudio.com/oauth2/authorize?client_id=%s&response_type=Assertion&state=%s&scope=%s&redirect_uri=%s", appId, userId, scope, cbUrl);
     var msg = new builder.Message();
     msg.attachments([
-            new builder.SigninCard(session).button('Go to VSO', url).text('Please authenticate yourself against VSO');
+            new builder.SigninCard(session).button('Go to VSO', url).text('Please authenticate yourself against VSO')
     ]);
-    msg.address(user_addr);
+    msg.address(userAddr);
     if (session.message.address.conversation.isGroup) {
         session.send("Ok, let's take 1:1");
     }
     bot.send(msg);
     new Promise( (resolve, reject) => {
-        bot.oauthPending[userId].resolve = resolve;     // to be called by oauth handler
-        bot.oauthPending[userId].reject = reject;
+        if (!bot.oauthPending) {
+            bot.oauthPending = {}
+        }
+        bot.oauthPending[userId] = {resolve: resolve, reject: reject}     // to be called by oauth handler
         setTimeout( () => {reject("Timeout")}, 60000);
-    }).then( (data) => {
-        var msg = new builder.Message().address(user_addr);
-        msg.text("Authenticated as " + data);
+    }).then((profile) => {
+        var msg = new builder.Message().address(userAddr);
+        if (profile.emailAddress.match(/@(microsoft|skype)\.com$/i)) {
+            msg.text(util.format("Authenticated as %s %s", profile.emailAddress, profile.displayName));
+            session.userData.vsoProfile = profile;
+            console.log(session.userData);
+        } else {
+            msg.text(util.format("Sorry, appears that your VSO profile %s %s should not have access", profile.emailAddress, profile.displayName));
+            delete(session.userData.vsoProfile);
+        }
+        session.save();
         bot.send(msg);
-    }).reject( (err) => {
-        var msg = new builder.Message().address(user_addr);
-        msg.text("Authentication failed: " + data);
+    }).catch((err) => {
+        console.log("Got error while processing OAuth callback: " + err);
+        var msg = new builder.Message().address(userAddr);
+        msg.text("Authentication failed: " + striptags(err));
         bot.send(msg);
     });
 

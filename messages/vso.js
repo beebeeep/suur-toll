@@ -49,8 +49,7 @@ function createTask(session, bau, title, description) {
             {op: 'add', path: '/fields/System.Title', value: title},
             {op: 'add', path: '/fields/System.Description', value: description || 'Add more details here' },
             {op: 'add', path: '/fields/System.IterationPath', value: backlog.iteration },
-            {op: 'add', path: '/fields/System.AreaPath', value: backlog.area },
-            //{op: 'add', path: '/fields/System.WorkItemType', value: backlog.item_type},
+            {op: 'add', path: '/fields/System.AreaPath', value: backlog.area }
         ];
         if (bau) {
             patch.push(
@@ -66,19 +65,20 @@ function createTask(session, bau, title, description) {
         witApi.createWorkItem({}, patch, backlog.project, backlog.item_type)
             .then( wit => { 
                 session.conversationData.last_wit = wit.id; resolve(wit); 
+                session.save()
             })
             .catch( err => { reject(err); });
     });
 }
 
-function getProfile(accessToken) {
-    // authenticate using provided token and return user profile
+function getProfile(accessToken, id) {
+    // profile API require OAuth token, PAT won't work here
     return new Promise((resolve, reject) => {
         var auth = vsts.getBearerHandler(accessToken);
-        var profileApi = new vsts.WebApi(collection, auth).getProfileApi();
-        profileApi.getProfile('me')
-        .then((data) => { resolve(data) })
-        .catch((err) => { reject(err) });
+        var profileApi = new vsts.WebApi('https://app.vssps.visualstudio.com/', auth).getProfileApi();
+        profileApi.getProfile(id)
+            .then((profile) => { console.log(profile);resolve(profile) })
+            .catch((err) => { reject(err) });
     });
 }
 

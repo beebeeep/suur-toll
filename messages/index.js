@@ -47,13 +47,14 @@ bot.setupDialogs(chatbot);
 
 if (!azure) {
     var restify = require('restify');
+    var restify_plugins = require('restify-plugins');
     var server = restify.createServer();
+    server.use(restify_plugins.queryParser());
     server.listen(3978, function() {
         console.log('Started bot at endpont http://localhost:3978/api/messages');
     });
-    server.use(restify.queryParser());
     server.post('/api/messages', connector.listen());    
-    server.get('/api/oauth', bot.oauthHandler());    
+    server.get('/api/oauth', bot.oauthHandler(chatbot));    
 } else {
     module.exports = { default: connector.listen() }
 }
